@@ -71,6 +71,10 @@ class ExternalStorageTest extends \Test\TestCase {
 	 */
 	public function testStorageMountOptions($inputUri, $baseUri) {
 		$certificateManager = \OC::$server->getCertificateManager();
+		$discoveryManager = $this->getMockBuilder('OCA\FederatedFileSharing\DiscoveryManager')
+			->disableOriginalConstructor()
+			->getMock();
+		$discoveryManager->expects($this->once())->method('getWebDavEndpoint')->willReturn('/public.php/webdav');
 		$storage = new TestSharingExternalStorage(
 			array(
 				'remote' => $inputUri,
@@ -79,7 +83,8 @@ class ExternalStorageTest extends \Test\TestCase {
 				'token' => 'abcdef',
 				'password' => '',
 				'manager' => null,
-				'certificateManager' => $certificateManager
+				'certificateManager' => $certificateManager,
+				'discoveryManager' => $discoveryManager
 			)
 		);
 		$this->assertEquals($baseUri, $storage->getBaseUri());

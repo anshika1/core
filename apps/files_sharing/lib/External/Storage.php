@@ -64,10 +64,14 @@ class Storage extends DAV implements ISharedStorage {
 	public function __construct($options) {
 		$this->memcacheFactory = \OC::$server->getMemCacheFactory();
 		$this->httpClient = \OC::$server->getHTTPClientService();
-		$discoveryManager = new DiscoveryManager(
-			$this->memcacheFactory,
-			\OC::$server->getHTTPClientService()
-		);
+		if (isset($options['discoveryManager'])) {
+			$discoveryManager = $options['discoveryManager'];
+		} else {
+			$discoveryManager = new DiscoveryManager(
+				$this->memcacheFactory,
+				\OC::$server->getHTTPClientService()
+			);
+		}
 
 		$this->manager = $options['manager'];
 		$this->certificateManager = $options['certificateManager'];

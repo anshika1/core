@@ -66,10 +66,11 @@ class ManagerTest extends TestCase {
 		$this->user = \OC::$server->getUserManager()->get($this->uid);
 		$this->mountManager = new \OC\Files\Mount\Manager();
 		$this->httpHelper = $httpHelper = $this->getMockBuilder('\OC\HTTPHelper')->disableOriginalConstructor()->getMock();
-		$discoveryManager = new DiscoveryManager(
-			\OC::$server->getMemCacheFactory(),
-			\OC::$server->getHTTPClientService()
-		);
+		$discoveryManager = $this->getMockBuilder('OCA\FederatedFileSharing\DiscoveryManager')
+			->disableOriginalConstructor()
+			->getMock();
+		$discoveryManager->expects($this->any())->method('getShareEndpoint')->willReturn('/ocs/v1.php/cloud/shares');
+
 		/** @var \OC\HTTPHelper $httpHelper */
 		$this->manager = new Manager(
 			\OC::$server->getDatabaseConnection(),
