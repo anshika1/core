@@ -32,12 +32,18 @@ OCP\JSON::callCheck();
 $l = \OC::$server->getL10N('user_ldap');
 
 $ldapWrapper = new OCA\User_LDAP\LDAP();
-$connection = new \OCA\User_LDAP\Connection($ldapWrapper, '', null);
-//needs to be true, otherwise it will also fail with an irritating message
-$_POST['ldap_configuration_active'] = 1;
+$connection = new \OCA\User_LDAP\Connection($ldapWrapper, $_POST['ldap_serverconfig_chooser']);
+
 
 try {
-	if ($connection->setConfiguration($_POST)) {
+	$configurationOk = true;
+	$conf = $connection->getConfiguration();
+	if ($conf['ldap_configuration_active'] === '0') {
+		//needs to be true, otherwise it will also fail with an irritating message
+		$conf['ldap_configuration_active'] = '1';
+		$configurationOk = $connection->setConfiguration($conf);
+	}
+	if ($configurationOk) {
 		//Configuration is okay
 		if ($connection->bind()) {
 			/*
