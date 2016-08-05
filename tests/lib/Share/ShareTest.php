@@ -125,6 +125,12 @@ class ShareTest extends \Test\TestCase {
 		});
 	}
 
+	protected function setHttpClientService($httpClientService) {
+		\OC::$server->registerService('HttpClientService', function () use ($httpClientService) {
+			return $httpClientService;
+		});
+	}
+
 	public function testShareInvalidShareType() {
 		$message = 'Share type foobar is not valid for test.txt';
 		try {
@@ -1052,6 +1058,23 @@ class ShareTest extends \Test\TestCase {
 			->getMock();
 		$this->setHttpHelper($httpHelperMock);
 
+		$oldHttpClientService = \OC::$server->query('HttpClientService');
+		$httpClientServiceMock = $this->getMockBuilder('\OCP\Http\Client\IClientService')
+			->disableOriginalConstructor()
+			->getMock();
+		$httpClient = $this->getMockBuilder('\OCP\Http\Client\IClient')
+			->disableOriginalConstructor()
+			->getMock();
+		$response = $this->getMockBuilder('\OCP\Http\Client\IResponse')
+			->disableOriginalConstructor()
+			->getMock();
+		$response->expects($this->exactly(4))->method('getStatusCode')->willReturn(200);
+		$response->expects($this->exactly(4))->method('getBody')->willReturn('{"services":{"FEDERATED_SHARING":{"version":1,"endpoints":{"share":"\/ocs\/v1.php\/cloud\/shares","webdav":"\/public.php\/webdav\/"}}}}');
+
+		$httpClient->expects($this->exactly(4))->method('get')->willReturn($response);
+		$httpClientServiceMock->expects($this->any())->method('newClient')->willReturn($httpClient);
+		$this->setHttpClientService($httpClientServiceMock);
+
 		$httpHelperMock->expects($this->at(0))
 			->method('post')
 			->with($this->stringStartsWith('https://' . $urlHost . '/ocs/v1.php/cloud/shares'), $this->anything())
@@ -1076,6 +1099,7 @@ class ShareTest extends \Test\TestCase {
 
 		\OCP\Share::unshare('test', 'test.txt', \OCP\Share::SHARE_TYPE_REMOTE, $shareWith);
 		$this->setHttpHelper($oldHttpHelper);
+		$this->setHttpClientService($oldHttpClientService);
 	}
 
 	/**
@@ -1479,6 +1503,23 @@ class ShareTest extends \Test\TestCase {
 			->getMock();
 		$this->setHttpHelper($httpHelperMock);
 
+		$oldHttpClientService = \OC::$server->query('HttpClientService');
+		$httpClientServiceMock = $this->getMockBuilder('\OCP\Http\Client\IClientService')
+			->disableOriginalConstructor()
+			->getMock();
+		$httpClient = $this->getMockBuilder('\OCP\Http\Client\IClient')
+			->disableOriginalConstructor()
+			->getMock();
+		$response = $this->getMockBuilder('\OCP\Http\Client\IResponse')
+			->disableOriginalConstructor()
+			->getMock();
+		$response->expects($this->exactly(2))->method('getStatusCode')->willReturn(200);
+		$response->expects($this->exactly(2))->method('getBody')->willReturn('{"services":{"FEDERATED_SHARING":{"version":1,"endpoints":{"share":"\/ocs\/v1.php\/cloud\/shares","webdav":"\/public.php\/webdav\/"}}}}');
+
+		$httpClient->expects($this->exactly(2))->method('get')->willReturn($response);
+		$httpClientServiceMock->expects($this->any())->method('newClient')->willReturn($httpClient);
+		$this->setHttpClientService($httpClientServiceMock);
+
 		$httpHelperMock->expects($this->at(0))
 			->method('post')
 			->with($this->stringStartsWith('https://localhost/ocs/v1.php/cloud/shares'), $this->anything())
@@ -1503,6 +1544,7 @@ class ShareTest extends \Test\TestCase {
 
 		\OCP\Share::unshare('test', 'test.txt', \OCP\Share::SHARE_TYPE_REMOTE, 'foo@localhost');
 		$this->setHttpHelper($oldHttpHelper);
+		$this->setHttpClientService($oldHttpClientService);
 	}
 
 	/**
